@@ -1,0 +1,3 @@
+pytest>=7.0
+# Optional: only needed for `image --cmap` and `--plot`.
+matplotlib>=3.7
