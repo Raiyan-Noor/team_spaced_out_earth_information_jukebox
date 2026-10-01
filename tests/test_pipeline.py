@@ -91,3 +91,52 @@ def test_capabilities_colormap_resolution():
 def test_offline_client_never_touches_network(tmp_path):
     with pytest.raises(gibs.GibsError, match="offline"):
         gibs.GibsClient(tmp_path, offline=True).fetch_frame("L", "2024-01-01", (-180, -90, 180, 90), (8, 4))
+
+
+def _write_png(path, rgba):
+    from PIL import Image
+
+    Image.fromarray(rgba, "RGBA").save(path)
+
+
+def test_image_command_luminance_scan(tmp_path):
+    # West dark -> east bright gradient with a fully transparent column band.
+    rgba = np.zeros((36, 72, 4), np.uint8)
+    rgba[..., :3] = np.linspace(0, 255, 72).astype(np.uint8)[None, :, None]
+    rgba[..., 3] = 255
+    rgba[:, 10:12, 3] = 0
+    _write_png(tmp_path / "f.png", rgba)
+    assert main(["image", str(tmp_path / "f.png"), "--out", str(tmp_path / "img")]) == 0
+    d = json.loads((tmp_path / "img.score.json").read_text(encoding="utf-8"))
+    assert validate_score_dict(d) == [] and d["meta"]["mode"] == "scan" and d["meta"]["approximate"] is True
+    melody = [e for e in d["events"] if e["voice"] == "melody"]
+    assert len(melody) == 35  # the transparent 10-degree strip is silent
+    assert [e["midi"] for e in melody] == sorted(e["midi"] for e in melody)
+    assert "approximate brightness" in d["legend"]
+
+
+def test_image_command_cmap_legend(tmp_path):
+    matplotlib = pytest.importorskip("matplotlib")
+    rgba = (matplotlib.colormaps["viridis"](np.tile(np.linspace(0, 1, 72), (36, 1))) * 255).astype(np.uint8)
+    _write_png(tmp_path / "v.png", rgba)
+    args = ["image", str(tmp_path / "v.png"), "--cmap", "viridis", "--vmin", "270", "--vmax", "310", "--units", "K"]
+    assert main(args + ["--out", str(tmp_path / "v")]) == 0
+    d = json.loads((tmp_path / "v.score.json").read_text(encoding="utf-8"))
+    assert "colour scale named by the user" in d["legend"] and "brightness" not in d["legend"]
+    assert "hotter" in d["legend"]
+    cols = d["meta"]["frames"][0]["columns"]
+    assert abs(cols[0]["mean"] - 270.6) < 1.0 and abs(cols[-1]["mean"] - 309.4) < 1.0
+
+
+def test_image_command_errors(tmp_path, capsys):
+    assert main(["image", str(tmp_path / "missing.png")]) == 2
+    assert main(["image", str(tmp_path / "x.png"), "--cmap", "viridis"]) == 2
+    assert "--vmin" in capsys.readouterr().err
+
+
+def test_demo_scan_mode(tmp_path):
+    assert main(["demo", "--mode", "scan", "--out", str(tmp_path / "s")]) == 0
+    d = json.loads((tmp_path / "s.score.json").read_text(encoding="utf-8"))
+    assert d["meta"]["mode"] == "scan" and d["meta"]["times"] == ["2022-07-01"]
+    rests = [c for c in d["meta"]["frames"][0]["columns"] if c["midi"] is None]
+    assert rests  # ocean-only longitudes are silent

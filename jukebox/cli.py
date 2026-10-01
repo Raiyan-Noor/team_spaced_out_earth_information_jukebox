@@ -11,11 +11,17 @@ from typing import Any, Sequence
 
 from jukebox import gibs
 from jukebox.colormap import ColormapError, load_colormap
-from jukebox.decode import GLOBAL_BBOX, ValueGrid, decode_with_colormap
+from jukebox.decode import (
+    GLOBAL_BBOX,
+    ValueGrid,
+    decode_luminance,
+    decode_with_colormap,
+    decode_with_matplotlib_cmap,
+)
 from jukebox.demo import demo_frames
 from jukebox.features import Frame, frame_features
 from jukebox.legend import build_legend, display_value
-from jukebox.mapping import SCALES, MappingConfig, timeline_score
+from jukebox.mapping import SCALES, MappingConfig, lon_label, scan_score, timeline_score
 from jukebox.score import Score, write_score
 from jukebox.synth import SAMPLE_RATE, render, write_wav
 
@@ -82,8 +88,10 @@ def build_parser() -> argparse.ArgumentParser:
     sub = parser.add_subparsers(dest="command", required=True)
 
     p = sub.add_parser("demo", help="offline synthetic planet (no network)")
-    p.add_argument("--frames", type=int, default=24, help="number of monthly frames (default 24)")
-    p.add_argument("--mode", choices=["timeline"], default="timeline")
+    p.add_argument("--frames", type=int, default=24, help="number of monthly frames in timeline mode (default 24)")
+    p.add_argument(
+        "--mode", choices=["timeline", "scan"], default="timeline", help="scan mode sweeps the July frame of year 1"
+    )
     _add_common(p, "out/demo")
 
     p = sub.add_parser("gibs", help="fetch NASA GIBS frames (cached) and sonify them")
@@ -98,10 +106,21 @@ def build_parser() -> argparse.ArgumentParser:
     where.add_argument("--bbox", help="minlon,minlat,maxlon,maxlat")
     p.add_argument("--size", type=_size, help="WIDTHxHEIGHT (default 720 on the longest side, aspect-correct)")
     p.add_argument("--colormap", default="auto", help="'auto' (from capabilities) or a colormap XML URL")
-    p.add_argument("--mode", choices=["timeline"], default="timeline")
+    p.add_argument("--mode", choices=["timeline", "scan"], default="timeline")
     p.add_argument("--cache-dir", default=str(gibs.DEFAULT_CACHE), help="cache directory (default data/cache)")
     p.add_argument("--offline", action="store_true", help="use only cached files, never the network")
     _add_common(p, "out/gibs")
+
+    p = sub.add_parser("image", help="sonify local image file(s) with no GIBS colormap (approximate)")
+    p.add_argument("paths", nargs="+", type=Path, help="PNG/JPEG frame(s), equirectangular")
+    p.add_argument("--cmap", help="matplotlib colormap the image was drawn with (needs --vmin/--vmax)")
+    p.add_argument("--vmin", type=float, help="data value at the low end of the colour scale")
+    p.add_argument("--vmax", type=float, help="data value at the high end of the colour scale")
+    p.add_argument("--units", help="units of --vmin/--vmax, e.g. K or mm (used in the legend)")
+    p.add_argument("--bbox", help="minlon,minlat,maxlon,maxlat covered by the image (default: whole globe)")
+    p.add_argument("--mask-gray", action="store_true", help="treat near-gray pixels (land, text, borders) as no data")
+    p.add_argument("--mode", choices=["scan", "timeline"], default="scan")
+    _add_common(p, "out/image")
     return parser
 
 
@@ -127,10 +146,16 @@ def sonify(
     colormap_range: tuple[float, float] | None = None,
 ) -> Score:
     """Decoded frames -> features -> score (+ legend)."""
+    for vg in grids:
+        if vg.values.shape[0] < args.grid[0] or vg.values.shape[1] < args.grid[1]:
+            raise CliError(f"image is {vg.values.shape[1]}x{vg.values.shape[0]} px, smaller than --grid {args.grid}")
     frames: list[Frame] = [frame_features(vg, t, grid=args.grid) for vg, t in zip(grids, times)]
     if all(not math.isfinite(f.mean) for f in frames):
         raise CliError("none of the frames contain any valid data (everything decoded as no-data)")
-    score = timeline_score(frames, mapping_config(args), meta=meta, colormap_range=colormap_range)
+    info = grids[0].source_info
+    meta = {"decode": info.get("decode"), "approximate": bool(info.get("approximate")), **meta}
+    build = scan_score if args.mode == "scan" else timeline_score
+    score = build(frames, mapping_config(args), meta=meta, colormap_range=colormap_range)
     score.legend = build_legend(score)
     return score
 
@@ -169,9 +194,24 @@ def format_table(score: Score) -> str:
     return "\n".join(lines)
 
 
+def format_scan_table(score: Score) -> str:
+    """Per-column table for scan mode: frame | lon | column mean | valid | midi."""
+    units = score.meta.get("units") or ""
+    head = f"{'frame':>5}  {'lon':>7}  {'mean ' + units:>10}  {'valid':>5}  {'midi':>6}"
+    lines = [head, "-" * len(head)]
+    for i, fr in enumerate(score.meta.get("frames", [])):
+        for c in fr["columns"]:
+            mean, midi = c["mean"], c["midi"]
+            mean_txt = f"{mean:.2f}" if mean is not None and math.isfinite(mean) else "n/a"
+            midi_txt = f"{midi:g}" if midi is not None else "rest"
+            lon_txt = lon_label(round(c["lon"], 1))
+            lines.append(f"{i:>5}  {lon_txt:>7}  {mean_txt:>10}  {c['valid']:>5.2f}  {midi_txt:>6}")
+    return "\n".join(lines)
+
+
 def report(score: Score, paths: list[Path]) -> None:
     """Print the table, value range, legend and output paths."""
-    print(format_table(score))
+    print(format_scan_table(score) if score.meta.get("mode") == "scan" else format_table(score))
     vr = score.meta["value_range"]
     units = score.meta.get("units")
     print(
@@ -190,7 +230,9 @@ def cmd_demo(args: argparse.Namespace) -> int:
     """Offline synthetic planet through the real decode path."""
     if not 1 <= args.frames <= 600:
         raise CliError("--frames must be between 1 and 600")
-    pngs, cmap = demo_frames(args.frames)
+    pngs, cmap = demo_frames(args.frames if args.mode == "timeline" else 7)
+    if args.mode == "scan":
+        pngs = pngs[6:7]  # July of year 1
     grids = [decode_with_colormap(png, cmap, GLOBAL_BBOX, source_info={"time": t}) for t, png in pngs]
     meta = {
         "source": "synthetic",
@@ -279,7 +321,43 @@ def cmd_gibs(args: argparse.Namespace) -> int:
     return 0
 
 
-COMMANDS = {"demo": cmd_demo, "gibs": cmd_gibs}
+def cmd_image(args: argparse.Namespace) -> int:
+    """Approximate decode of arbitrary frames: ``--cmap`` LUT, else perceptual lightness."""
+    if args.cmap and (args.vmin is None or args.vmax is None):
+        raise CliError("--cmap needs --vmin and --vmax (the data values at the two ends of the colour scale)")
+    if (args.vmin is None) != (args.vmax is None) or (args.vmin is not None and not args.cmap):
+        raise CliError("--vmin/--vmax only make sense together with --cmap")
+    bbox = gibs.parse_bbox(args.bbox) if args.bbox else GLOBAL_BBOX
+    grids = []
+    for path in args.paths:
+        if not path.is_file():
+            raise CliError(f"no such image: {path}")
+        info = {"path": str(path)}
+        try:
+            if args.cmap:
+                vg = decode_with_matplotlib_cmap(
+                    path, args.cmap, args.vmin, args.vmax, bbox, mask_gray=args.mask_gray, units=args.units, source_info=info
+                )
+            else:
+                vg = decode_luminance(path, bbox, mask_gray=args.mask_gray, source_info=info)
+        except (ImportError, ValueError, OSError) as exc:
+            raise CliError(f"{path}: {exc}") from exc
+        grids.append(vg)
+    names = [p.name for p in args.paths]
+    meta = {
+        "source": "image",
+        "dataset": f"the image {names[0]}" if len(names) == 1 else f"{len(names)} images ({names[0]} to {names[-1]})",
+        "region": "whole globe" if bbox == GLOBAL_BBOX else "custom",
+        "images": [str(p) for p in args.paths],
+    }
+    if args.cmap:
+        meta.update(colormap=f"matplotlib:{args.cmap}", cmap_range=[args.vmin, args.vmax])
+    score = sonify(grids, [None] * len(grids), args, meta, colormap_range=(args.vmin, args.vmax) if args.cmap else (0.0, 1.0))
+    report(score, write_outputs(score, args))
+    return 0
+
+
+COMMANDS = {"demo": cmd_demo, "gibs": cmd_gibs, "image": cmd_image}
 
 
 def main(argv: Sequence[str] | None = None) -> int:

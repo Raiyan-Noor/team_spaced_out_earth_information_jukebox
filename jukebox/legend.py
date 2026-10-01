@@ -99,7 +99,8 @@ def build_legend(score: Score) -> str:
     mode = meta.get("mode", "timeline")
     units = meta.get("units")
     anomaly = bool(meta.get("anomaly"))
-    approximate = bool(meta.get("approximate"))
+    # "luminance" = no colour scale at all (brightness only); "cmap" = user-named scale (approximate values).
+    approximate = meta.get("decode") == "luminance"
     temp = is_temperature(units) and not approximate
     vr = meta.get("value_range") or {}
     lo, hi = vr.get("lo"), vr.get("hi")
@@ -117,7 +118,7 @@ def build_legend(score: Score) -> str:
         )
     elif meta.get("decode") == "cmap":
         lines.append(
-            "The colours were matched to a standard colour scale chosen by the user, so values are approximate."
+            "The colours were matched to a standard colour scale named by the user, so the values are approximate."
         )
 
     if anomaly:
