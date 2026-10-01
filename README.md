@@ -59,6 +59,9 @@ python -m jukebox gibs --layer MODIS_Terra_L3_Land_Surface_Temp_Monthly_Day --da
 # 4. Any image without a known colour scale (approximate, see below)
 python -m jukebox image path/to/frame.png --mode scan --out out/frame
 
+# 5. Hear departures from normal instead of the seasons, and draw a check plot (needs matplotlib)
+python -m jukebox gibs --layer MODIS_Terra_L3_Land_Surface_Temp_Monthly_Day --start 2022-01 --end 2024-12 --anomaly --plot --out out/lst_anomaly
+
 # Tests (no network needed)
 pytest -q
 ```
@@ -66,7 +69,7 @@ pytest -q
 Every command prints a table of the frames and the notes chosen for them, plus the legend. `python -m jukebox
 <command> --help` lists all options. Common options: `--tempo` (seconds per month, default 0.35), `--scale
 pentatonic|chromatic|continuous`, `--invert`, `--no-drone`, `--range sequence|colormap`, `--grid 18x36`,
-`--sample-rate`, `--mono`. For `gibs`: `--region global|bangladesh`, `--bbox`, `--size`, `--step day:N`,
+`--sample-rate`, `--mono`, `--anomaly`, `--plot`. For `gibs`: `--region global|bangladesh`, `--bbox`, `--size`, `--step day:N`,
 `--offline` (cache only).
 
 ## How it works
@@ -98,6 +101,11 @@ NASA frame(s) → decode pixels to data values → per-frame features → musica
    **Scan mode** (one map, swept west → east in 6 s): pitch = average of each 10° strip of longitude, loudness =
    how much of the strip has data (silence = no data, e.g. ocean), sound moves left → right, and clicks mark the
    start and 90° W, 0°, 90° E.
+
+   **Anomaly mode** (`--anomaly`): before mapping, each calendar month's average across the sequence is subtracted
+   cell by cell. The melody then follows "warmer or cooler than usual for this month" instead of the seasonal cycle.
+   It needs every calendar month at least twice. With only 2–3 years the "normal" baseline is very short, so read
+   the result as a demonstration of the technique, not as a climate finding (see Known limitations).
 5. **Explain it.** `legend.txt` is generated from the actual mapping (including the real temperature range), written
    to be read aloud. Example from the real data sample:
    > Each note is one month. Higher pitch means hotter: the lowest note is about 9 °C and the highest about 20 °C.
@@ -106,6 +114,9 @@ The score JSON is meant as the hand-off to the future web player, which will pla
 next to the visualization. The format is documented in [docs/SONIFICATION_SPEC.md](docs/SONIFICATION_SPEC.md),
 section 6.4.
 
+`--plot` also writes `PREFIX.png`, a check chart for sighted teammates. It has two panels: the data series on top
+and the note played below, with lines marking where the clicks fall.
+
 ### Images with no machine-readable colour scale
 
 Most EIC / NASA SVS visualization frames are images without a colormap file. The `image` command handles them
@@ -113,6 +124,9 @@ Most EIC / NASA SVS visualization frames are images without a colormap file. The
 
 - `--cmap NAME --vmin A --vmax B`: if you know which standard (matplotlib) colour scale and value range the image
   uses, colours are matched to it.
+- `--legend-crop x0,y0,x1,y1 --vmin A --vmax B`: if the frame has a colour bar printed on it, give the pixel box
+  around the bar. Colours are matched to the bar, and the bar itself is ignored. The map should fill the image, so
+  crop away margins first.
 - Otherwise: perceptual lightness (CIE L*) is used, and the legend says clearly that these are approximate brightness
   values, not measured data.
 - `--mask-gray` treats gray pixels (land fill, labels, borders) as no data.
@@ -166,6 +180,11 @@ data/cache/, out/   created when you run commands; not committed
   different runs. `--range colormap` uses the colormap's fixed range instead (200–350 K for MODIS LST).
 - A 10° cell counts as "has data" if any pixel in it has data, so coastal cells count as land.
 - Only colormaps with numeric values are supported. Category maps (e.g. land cover) are rejected with a clear error.
+- **Open question about the real data.** In anomaly mode, 2024 comes out about 0.5 K cooler than 2022 in this
+  MODIS Terra daytime layer (yearly means 288.6, 288.6 and 288.0 K, with the same data coverage each year). That
+  goes against other records, which call 2024 the warmest year on record. We have not explained it yet. Possible
+  causes include the satellite's drifting overpass time and the 0.6 K colour steps of the image product. Until our
+  researcher checks it, **do not present it as a climate signal**.
 - Sound design choices (scale, tempo, timbres, legend wording) are first guesses that still need testing with
   visually impaired listeners.
 
