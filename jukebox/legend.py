@@ -120,6 +120,8 @@ def build_legend(score: Score) -> str:
         lines.append(
             "The colours were matched to a standard colour scale named by the user, so the values are approximate."
         )
+    elif meta.get("decode") == "legend-crop":
+        lines.append("The colours were matched to the colour bar printed in the image, so the values are approximate.")
 
     if anomaly:
         up = "warmer than normal" if temp else "above normal"

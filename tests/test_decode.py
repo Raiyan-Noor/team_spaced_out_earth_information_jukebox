@@ -72,3 +72,31 @@ def test_matplotlib_cmap_round_trip():
     vg = decode_with_matplotlib_cmap(rgba, "viridis", vmin=-2.0, vmax=2.0)
     np.testing.assert_allclose(vg.values[0], [-2.0, 0.0, 2.0], atol=4.0 / 255 + 1e-6)
     assert vg.source_info["approximate"] is True
+
+
+def test_legend_crop_horizontal_and_vertical():
+    from jukebox.decode import decode_with_legend_crop
+
+    ramp = np.stack([np.linspace(0, 255, 64), np.zeros(64), np.linspace(255, 0, 64)], axis=-1).astype(np.uint8)
+    img = np.zeros((40, 64, 4), np.uint8)
+    img[..., 3] = 255
+    img[:30, :, :3] = ramp[None, :, :]  # "map": a west->east ramp
+    img[34:38, :, :3] = ramp[None, :, :]  # horizontal colour bar
+    vg = decode_with_legend_crop(img, (0, 34, 64, 38), vmin=0.0, vmax=63.0)
+    np.testing.assert_allclose(vg.values[10, [0, 32, 63]], [0.0, 32.0, 63.0], atol=1.01)
+    assert np.isnan(vg.values[35, 5])  # the bar itself is not sonified
+    assert vg.source_info["decode"] == "legend-crop"
+
+    vimg = np.zeros((64, 40, 4), np.uint8)
+    vimg[..., 3] = 255
+    vimg[:, 36:40, :3] = ramp[::-1][:, None, :]  # vertical bar, low value at the bottom
+    vimg[:, :30, :3] = ramp[5]
+    vg2 = decode_with_legend_crop(vimg, (36, 0, 40, 64), vmin=0.0, vmax=63.0)
+    assert abs(vg2.values[0, 0] - 5.0) <= 1.01
+
+
+def test_legend_crop_outside_image_rejected():
+    from jukebox.decode import decode_with_legend_crop
+
+    with pytest.raises(ValueError, match="outside"):
+        decode_with_legend_crop(np.zeros((10, 10, 4), np.uint8), (0, 0, 20, 2), 0.0, 1.0)

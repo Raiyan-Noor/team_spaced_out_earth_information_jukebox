@@ -152,3 +152,59 @@ def decode_with_matplotlib_cmap(
     vg.source_info.update({"decode": "cmap", "approximate": True, "cmap": name, "vmin": vmin, "vmax": vmax})
     vg.source_info.update(source_info or {})
     return vg
+
+
+def colorbar_colormap(
+    rgba: np.ndarray, crop: tuple[int, int, int, int], vmin: float, vmax: float, units: str | None = None
+) -> Colormap:
+    """Build a colormap by sampling a colour bar inside the image.
+
+    ``crop`` = ``(x0, y0, x1, y1)`` in pixels (x1/y1 exclusive) around the bar only. The long side is the value
+    axis: a horizontal bar runs ``vmin`` (left) -> ``vmax`` (right), a vertical bar ``vmin`` (bottom) -> ``vmax``
+    (top). Each position takes the median colour across the bar's short side.
+    """
+    from jukebox.colormap import ColormapEntry
+
+    x0, y0, x1, y1 = crop
+    h, w = rgba.shape[:2]
+    if not (0 <= x0 < x1 <= w and 0 <= y0 < y1 <= h):
+        raise ValueError(f"--legend-crop {crop} is outside the {w}x{h} image")
+    strip = rgba[y0:y1, x0:x1, :3].astype(np.float64)
+    horizontal = (x1 - x0) >= (y1 - y0)
+    samples = np.median(strip, axis=0) if horizontal else np.median(strip, axis=1)[::-1]
+    if len(samples) < 2:
+        raise ValueError("--legend-crop must be at least 2 pixels long")
+    vals = np.linspace(vmin, vmax, len(samples))
+    step = abs(vmax - vmin) / (len(samples) - 1)
+    entries, seen = [], set()
+    for rgb, v in zip(np.round(samples).astype(int), vals):
+        key = tuple(int(c) for c in rgb)
+        if key in seen:
+            continue
+        seen.add(key)
+        entries.append(ColormapEntry(rgb=key, value=float(v), lo=v - step / 2, hi=v + step / 2, interval=f"[{v:g}]"))
+    return Colormap(entries=entries, units=units, title="colour bar from image", name="legend-crop")
+
+
+def decode_with_legend_crop(
+    source: ImageSource,
+    crop: tuple[int, int, int, int],
+    vmin: float,
+    vmax: float,
+    bbox: BBox = GLOBAL_BBOX,
+    mask_gray: bool = False,
+    units: str | None = None,
+    source_info: dict | None = None,
+) -> ValueGrid:
+    """Approximate decode using the image's own colour bar; the colour bar pixels themselves become no-data."""
+    rgba = load_rgba(source)
+    cmap = colorbar_colormap(rgba, crop, vmin, vmax, units)
+    rgba = rgba.copy()
+    x0, y0, x1, y1 = crop
+    rgba[y0:y1, x0:x1, 3] = 0
+    if mask_gray:
+        rgba[gray_mask(rgba), 3] = 0
+    vg = decode_with_colormap(rgba, cmap, bbox, tolerance=CMAP_TOLERANCE)
+    vg.source_info.update({"decode": "legend-crop", "approximate": True, "crop": list(crop), "vmin": vmin, "vmax": vmax})
+    vg.source_info.update(source_info or {})
+    return vg

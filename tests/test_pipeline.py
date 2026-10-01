@@ -155,3 +155,18 @@ def test_demo_anomaly_and_plot(tmp_path):
 def test_anomaly_rejects_short_sequences(tmp_path, capsys):
     assert main(["demo", "--frames", "12", "--anomaly", "--out", str(tmp_path / "a")]) == 2
     assert "twice" in capsys.readouterr().err
+
+
+def test_image_command_legend_crop(tmp_path):
+    ramp = np.stack([np.linspace(0, 255, 72), np.full(72, 60), np.linspace(255, 0, 72)], axis=-1).astype(np.uint8)
+    img = np.full((36, 72, 4), 255, np.uint8)
+    img[:, :, :3] = ramp[None]  # map: value rises west -> east
+    img[32:35, 10:62, :3] = ramp[np.linspace(0, 71, 52).astype(int)][None]  # colour bar overlaid near the bottom
+    _write_png(tmp_path / "c.png", img)
+    args = ["image", str(tmp_path / "c.png"), "--legend-crop", "10,32,62,35", "--vmin", "0", "--vmax", "100"]
+    assert main(args + ["--out", str(tmp_path / "c")]) == 0
+    d = json.loads((tmp_path / "c.score.json").read_text(encoding="utf-8"))
+    assert "colour bar printed in the image" in d["legend"]
+    cols = d["meta"]["frames"][0]["columns"]
+    assert cols[0]["mean"] < 5 and cols[-1]["mean"] > 95
+    assert main(["image", str(tmp_path / "c.png"), "--legend-crop", "1,2,3"]) == 2

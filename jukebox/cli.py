@@ -16,6 +16,7 @@ from jukebox.decode import (
     ValueGrid,
     decode_luminance,
     decode_with_colormap,
+    decode_with_legend_crop,
     decode_with_matplotlib_cmap,
 )
 from jukebox.demo import demo_frames
@@ -119,7 +120,13 @@ def build_parser() -> argparse.ArgumentParser:
 
     p = sub.add_parser("image", help="sonify local image file(s) with no GIBS colormap (approximate)")
     p.add_argument("paths", nargs="+", type=Path, help="PNG/JPEG frame(s), equirectangular")
-    p.add_argument("--cmap", help="matplotlib colormap the image was drawn with (needs --vmin/--vmax)")
+    scale = p.add_mutually_exclusive_group()
+    scale.add_argument("--cmap", help="matplotlib colormap the image was drawn with (needs --vmin/--vmax)")
+    scale.add_argument(
+        "--legend-crop",
+        help="x0,y0,x1,y1 pixel box around a colour bar in the image (needs --vmin/--vmax; horizontal bars run "
+        "low->high left to right, vertical bars bottom to top)",
+    )
     p.add_argument("--vmin", type=float, help="data value at the low end of the colour scale")
     p.add_argument("--vmax", type=float, help="data value at the high end of the colour scale")
     p.add_argument("--units", help="units of --vmin/--vmax, e.g. K or mm (used in the legend)")
@@ -349,11 +356,21 @@ def cmd_gibs(args: argparse.Namespace) -> int:
 
 
 def cmd_image(args: argparse.Namespace) -> int:
-    """Approximate decode of arbitrary frames: ``--cmap`` LUT, else perceptual lightness."""
-    if args.cmap and (args.vmin is None or args.vmax is None):
-        raise CliError("--cmap needs --vmin and --vmax (the data values at the two ends of the colour scale)")
-    if (args.vmin is None) != (args.vmax is None) or (args.vmin is not None and not args.cmap):
-        raise CliError("--vmin/--vmax only make sense together with --cmap")
+    """Approximate decode of arbitrary frames: ``--cmap`` or ``--legend-crop`` LUT, else perceptual lightness."""
+    scaled = args.cmap or args.legend_crop
+    if scaled and (args.vmin is None or args.vmax is None):
+        flag = "--cmap" if args.cmap else "--legend-crop"
+        raise CliError(f"{flag} needs --vmin and --vmax (the data values at the two ends of the colour scale)")
+    if (args.vmin is None) != (args.vmax is None) or (args.vmin is not None and not scaled):
+        raise CliError("--vmin/--vmax only make sense together with --cmap or --legend-crop")
+    crop = None
+    if args.legend_crop:
+        try:
+            crop = tuple(int(v) for v in args.legend_crop.split(","))
+        except ValueError:
+            crop = ()
+        if len(crop) != 4:
+            raise CliError(f"bad --legend-crop {args.legend_crop!r}: use x0,y0,x1,y1 in pixels")
     bbox = gibs.parse_bbox(args.bbox) if args.bbox else GLOBAL_BBOX
     grids = []
     for path in args.paths:
@@ -364,6 +381,10 @@ def cmd_image(args: argparse.Namespace) -> int:
             if args.cmap:
                 vg = decode_with_matplotlib_cmap(
                     path, args.cmap, args.vmin, args.vmax, bbox, mask_gray=args.mask_gray, units=args.units, source_info=info
+                )
+            elif crop:
+                vg = decode_with_legend_crop(
+                    path, crop, args.vmin, args.vmax, bbox, mask_gray=args.mask_gray, units=args.units, source_info=info
                 )
             else:
                 vg = decode_luminance(path, bbox, mask_gray=args.mask_gray, source_info=info)
@@ -379,7 +400,10 @@ def cmd_image(args: argparse.Namespace) -> int:
     }
     if args.cmap:
         meta.update(colormap=f"matplotlib:{args.cmap}", cmap_range=[args.vmin, args.vmax])
-    score = sonify(grids, [None] * len(grids), args, meta, colormap_range=(args.vmin, args.vmax) if args.cmap else (0.0, 1.0))
+    elif crop:
+        meta.update(colormap="legend-crop", legend_crop=list(crop), cmap_range=[args.vmin, args.vmax])
+    value_range = (min(args.vmin, args.vmax), max(args.vmin, args.vmax)) if scaled else (0.0, 1.0)
+    score = sonify(grids, [None] * len(grids), args, meta, colormap_range=value_range)
     report(score, write_outputs(score, args))
     return 0
 
