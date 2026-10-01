@@ -1,0 +1,6 @@
+Earth Jukebox: a made-up practice planet (synthetic surface temperature, not real data), whole globe, January 2022 to December 2023.
+Each note is one month. Higher pitch means hotter: the lowest note is about 4 °C and the highest about 13 °C.
+A soft click marks the start of each year.
+The quiet steady tone is the average of the first year, so you can hear whether later months sit above or below it.
+A brighter, buzzier note means more of the land is unusually hot that month.
+The sound leans left or right toward where the hottest area is, west to east.

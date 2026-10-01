@@ -1,0 +1,761 @@
+{
+ "version": 1,
+ "meta": {
+  "mode": "scan",
+  "source": "gibs",
+  "layer": "MODIS_Terra_L3_Land_Surface_Temp_Monthly_Day",
+  "colormap": "MODIS_Land_Surface_Temp.xml",
+  "units": "K",
+  "bbox": [
+   -180.0,
+   -90.0,
+   180.0,
+   90.0
+  ],
+  "times": [
+   "2024-07-01"
+  ],
+  "value_range": {
+   "lo": 278.8626028161463,
+   "hi": 300.80131299818555
+  },
+  "scale": "pentatonic",
+  "midi_range": [
+   48,
+   84
+  ],
+  "tempo_s_per_frame": 6.0,
+  "frames": [
+   {
+    "time": "2024-07-01",
+    "mean": 291.8559417468303,
+    "std": 21.15137564095773,
+    "extreme_frac": 0.1448580807956314,
+    "hotspot_lon": 45.0,
+    "valid_frac": 0.575863161017044,
+    "start_s": 0.0,
+    "columns": [
+     {
+      "lon": -175.0,
+      "mean": 288.50781664373926,
+      "valid": 0.34178210632326517,
+      "midi": 64.0
+     },
+     {
+      "lon": -165.0,
+      "mean": 284.01663712202577,
+      "valid": 0.22372132738303,
+      "midi": 57.0
+     },
+     {
+      "lon": -155.0,
+      "mean": 292.47222443694824,
+      "valid": 0.46588716688673043,
+      "midi": 69.0
+     },
+     {
+      "lon": -145.0,
+      "mean": 282.91144612842385,
+      "valid": 0.20116376126988017,
+      "midi": 55.0
+     },
+     {
+      "lon": -135.0,
+      "mean": 286.1004184860849,
+      "valid": 0.2801536896070458,
+      "midi": 60.0
+     },
+     {
+      "lon": -125.0,
+      "mean": 291.20230424637606,
+      "valid": 0.27255756611314985,
+      "midi": 69.0
+     },
+     {
+      "lon": -115.0,
+      "mean": 299.6759755702661,
+      "valid": 0.35154749445031547,
+      "midi": 81.0
+     },
+     {
+      "lon": -105.0,
+      "mean": 297.3332002960201,
+      "valid": 0.4357334772796847,
+      "midi": 79.0
+     },
+     {
+      "lon": -95.0,
+      "mean": 294.4195006159762,
+      "valid": 0.5301536896070458,
+      "midi": 74.0
+     },
+     {
+      "lon": -85.0,
+      "mean": 294.3377259973626,
+      "valid": 0.6169777784405109,
+      "midi": 74.0
+     },
+     {
+      "lon": -75.0,
+      "mean": 288.09106659042516,
+      "valid": 1.0,
+      "midi": 64.0
+     },
+     {
+      "lon": -65.0,
+      "mean": 286.1014439055885,
+      "valid": 0.8496162668195648,
+      "midi": 60.0
+     },
+     {
+      "lon": -55.0,
+      "mean": 287.36951270279474,
+      "valid": 0.703801867273976,
+      "midi": 62.0
+     },
+     {
+      "lon": -45.0,
+      "mean": 289.1750766442607,
+      "valid": 0.483955556881022,
+      "midi": 64.0
+     },
+     {
+      "lon": -35.0,
+      "mean": 279.85981691532993,
+      "valid": 0.3181415397103911,
+      "midi": 50.0
+     },
+     {
+      "lon": -25.0,
+      "mean": 284.9561292513071,
+      "valid": 0.2527207753874653,
+      "midi": 57.0
+     },
+     {
+      "lon": -15.0,
+      "mean": 292.6871948169844,
+      "valid": 0.4899285974013658,
+      "midi": 72.0
+     },
+     {
+      "lon": -5.0,
+      "mean": 298.6404930903533,
+      "valid": 0.5225575661131499,
+      "midi": 81.0
+     },
+     {
+      "lon": 5.0,
+      "mean": 299.80409889900193,
+      "valid": 0.5868240888334652,
+      "midi": 81.0
+     },
+     {
+      "lon": 15.0,
+      "mean": 297.6858494456472,
+      "valid": 0.8515474944503153,
+      "midi": 79.0
+     },
+     {
+      "lon": 25.0,
+      "mean": 298.12345180102733,
+      "valid": 0.8515474944503153,
+      "midi": 79.0
+     },
+     {
+      "lon": 35.0,
+      "mean": 297.57692686507545,
+      "valid": 0.8807849794571544,
+      "midi": 79.0
+     },
+     {
+      "lon": 45.0,
+      "mean": 299.80179147167036,
+      "valid": 0.7944297319946307,
+      "midi": 81.0
+     },
+     {
+      "lon": 55.0,
+      "mean": 299.0424422248456,
+      "valid": 0.7301632092743157,
+      "midi": 81.0
+     },
+     {
+      "lon": 65.0,
+      "mean": 291.4259894032818,
+      "valid": 0.45760564316116564,
+      "midi": 69.0
+     },
+     {
+      "lon": 75.0,
+      "mean": 291.74980326668094,
+      "valid": 0.6210195913301041,
+      "midi": 69.0
+     },
+     {
+      "lon": 85.0,
+      "mean": 291.7430538720686,
+      "valid": 0.5593911746138847,
+      "midi": 69.0
+     },
+     {
+      "lon": 95.0,
+      "mean": 290.4700589592385,
+      "valid": 0.6538113869412459,
+      "midi": 67.0
+     },
+     {
+      "lon": 105.0,
+      "mean": 292.47355475460347,
+      "valid": 0.6462152634473498,
+      "midi": 69.0
+     },
+     {
+      "lon": 115.0,
+      "mean": 292.0927091990818,
+      "valid": 0.7965989966277851,
+      "midi": 69.0
+     },
+     {
+      "lon": 125.0,
+      "mean": 292.120925600038,
+      "valid": 0.8807849794571544,
+      "midi": 69.0
+     },
+     {
+      "lon": 135.0,
+      "mean": 290.1844017956456,
+      "valid": 0.7965989966277851,
+      "midi": 67.0
+     },
+     {
+      "lon": 145.0,
+      "mean": 285.9190653608496,
+      "valid": 0.6924133961733737,
+      "midi": 60.0
+     },
+     {
+      "lon": 155.0,
+      "mean": 282.42490968917645,
+      "valid": 0.6093816549466149,
+      "midi": 55.0
+     },
+     {
+      "lon": 165.0,
+      "mean": 283.8700428122113,
+      "valid": 0.5379878501033453,
+      "midi": 57.0
+     },
+     {
+      "lon": 175.0,
+      "mean": 285.59676515083635,
+      "valid": 0.4435676377759842,
+      "midi": 60.0
+     }
+    ]
+   }
+  ],
+  "invert": false,
+  "range_mode": "sequence",
+  "decode": "colormap",
+  "approximate": false,
+  "layer_title": "Land Surface Temperature (L3, Monthly, Day, MODIS, Terra)",
+  "colormap_url": "https://gibs.earthdata.nasa.gov/colormaps/v1.3/MODIS_Land_Surface_Temp.xml",
+  "colormap_title": "Land Surface Temperature",
+  "region": "whole globe",
+  "size": [
+   720,
+   360
+  ],
+  "wms_example": "https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&LAYERS=MODIS_Terra_L3_Land_Surface_Temp_Monthly_Day&STYLES=&FORMAT=image/png&TRANSPARENT=TRUE&SRS=EPSG:4326&BBOX=-180,-90,180,90&WIDTH=720&HEIGHT=360&TIME=2024-07-01",
+  "extreme_threshold": 305.715200249566,
+  "sweep_s": 6.0,
+  "tick_longitudes": [
+   -90.0,
+   0.0,
+   90.0
+  ]
+ },
+ "events": [
+  {
+   "t": 0.0,
+   "dur": 0.06,
+   "voice": "tick",
+   "midi": 90.233,
+   "freq": 1500.0,
+   "gain": 0.35,
+   "pan": 0.0,
+   "brightness": 0.0,
+   "frame": 0,
+   "label": "sweep start 2024-07"
+  },
+  {
+   "t": 0.0,
+   "dur": 0.166667,
+   "voice": "melody",
+   "midi": 64.0,
+   "freq": 329.628,
+   "gain": 0.6051,
+   "pan": -1.0,
+   "brightness": 0.5,
+   "frame": 0,
+   "label": "175°W"
+  },
+  {
+   "t": 0.166667,
+   "dur": 0.166667,
+   "voice": "melody",
+   "midi": 57.0,
+   "freq": 220.0,
+   "gain": 0.5342,
+   "pan": -0.9429,
+   "brightness": 0.5,
+   "frame": 0,
+   "label": "165°W"
+  },
+  {
+   "t": 0.333333,
+   "dur": 0.166667,
+   "voice": "melody",
+   "midi": 69.0,
+   "freq": 440.0,
+   "gain": 0.6795,
+   "pan": -0.8857,
+   "brightness": 0.5,
+   "frame": 0,
+   "label": "155°W"
+  },
+  {
+   "t": 0.5,
+   "dur": 0.166667,
+   "voice": "melody",
+   "midi": 55.0,
+   "freq": 195.998,
+   "gain": 0.5207,
+   "pan": -0.8286,
+   "brightness": 0.5,
+   "frame": 0,
+   "label": "145°W"
+  },
+  {
+   "t": 0.666667,
+   "dur": 0.166667,
+   "voice": "melody",
+   "midi": 60.0,
+   "freq": 261.626,
+   "gain": 0.5681,
+   "pan": -0.7714,
+   "brightness": 0.5,
+   "frame": 0,
+   "label": "135°W"
+  },
+  {
+   "t": 0.833333,
+   "dur": 0.166667,
+   "voice": "melody",
+   "midi": 69.0,
+   "freq": 440.0,
+   "gain": 0.5635,
+   "pan": -0.7143,
+   "brightness": 0.5,
+   "frame": 0,
+   "label": "125°W"
+  },
+  {
+   "t": 1.0,
+   "dur": 0.166667,
+   "voice": "melody",
+   "midi": 81.0,
+   "freq": 880.0,
+   "gain": 0.6109,
+   "pan": -0.6571,
+   "brightness": 0.5,
+   "frame": 0,
+   "label": "115°W"
+  },
+  {
+   "t": 1.166667,
+   "dur": 0.166667,
+   "voice": "melody",
+   "midi": 79.0,
+   "freq": 783.991,
+   "gain": 0.6614,
+   "pan": -0.6,
+   "brightness": 0.5,
+   "frame": 0,
+   "label": "105°W"
+  },
+  {
+   "t": 1.333333,
+   "dur": 0.166667,
+   "voice": "melody",
+   "midi": 74.0,
+   "freq": 587.33,
+   "gain": 0.7181,
+   "pan": -0.5429,
+   "brightness": 0.5,
+   "frame": 0,
+   "label": "95°W"
+  },
+  {
+   "t": 1.5,
+   "dur": 0.06,
+   "voice": "tick",
+   "midi": 90.233,
+   "freq": 1500.0,
+   "gain": 0.35,
+   "pan": 0.0,
+   "brightness": 0.0,
+   "frame": 0,
+   "label": "90°W"
+  },
+  {
+   "t": 1.5,
+   "dur": 0.166667,
+   "voice": "melody",
+   "midi": 74.0,
+   "freq": 587.33,
+   "gain": 0.7702,
+   "pan": -0.4857,
+   "brightness": 0.5,
+   "frame": 0,
+   "label": "85°W"
+  },
+  {
+   "t": 1.666667,
+   "dur": 0.166667,
+   "voice": "melody",
+   "midi": 64.0,
+   "freq": 329.628,
+   "gain": 1.0,
+   "pan": -0.4286,
+   "brightness": 0.5,
+   "frame": 0,
+   "label": "75°W"
+  },
+  {
+   "t": 1.833333,
+   "dur": 0.166667,
+   "voice": "melody",
+   "midi": 60.0,
+   "freq": 261.626,
+   "gain": 0.9098,
+   "pan": -0.3714,
+   "brightness": 0.5,
+   "frame": 0,
+   "label": "65°W"
+  },
+  {
+   "t": 2.0,
+   "dur": 0.166667,
+   "voice": "melody",
+   "midi": 62.0,
+   "freq": 293.665,
+   "gain": 0.8223,
+   "pan": -0.3143,
+   "brightness": 0.5,
+   "frame": 0,
+   "label": "55°W"
+  },
+  {
+   "t": 2.166667,
+   "dur": 0.166667,
+   "voice": "melody",
+   "midi": 64.0,
+   "freq": 329.628,
+   "gain": 0.6904,
+   "pan": -0.2571,
+   "brightness": 0.5,
+   "frame": 0,
+   "label": "45°W"
+  },
+  {
+   "t": 2.333333,
+   "dur": 0.166667,
+   "voice": "melody",
+   "midi": 50.0,
+   "freq": 146.832,
+   "gain": 0.5909,
+   "pan": -0.2,
+   "brightness": 0.5,
+   "frame": 0,
+   "label": "35°W"
+  },
+  {
+   "t": 2.5,
+   "dur": 0.166667,
+   "voice": "melody",
+   "midi": 57.0,
+   "freq": 220.0,
+   "gain": 0.5516,
+   "pan": -0.1429,
+   "brightness": 0.5,
+   "frame": 0,
+   "label": "25°W"
+  },
+  {
+   "t": 2.666667,
+   "dur": 0.166667,
+   "voice": "melody",
+   "midi": 72.0,
+   "freq": 523.251,
+   "gain": 0.694,
+   "pan": -0.0857,
+   "brightness": 0.5,
+   "frame": 0,
+   "label": "15°W"
+  },
+  {
+   "t": 2.833333,
+   "dur": 0.166667,
+   "voice": "melody",
+   "midi": 81.0,
+   "freq": 880.0,
+   "gain": 0.7135,
+   "pan": -0.0286,
+   "brightness": 0.5,
+   "frame": 0,
+   "label": "5°W"
+  },
+  {
+   "t": 3.0,
+   "dur": 0.06,
+   "voice": "tick",
+   "midi": 90.233,
+   "freq": 1500.0,
+   "gain": 0.35,
+   "pan": 0.0,
+   "brightness": 0.0,
+   "frame": 0,
+   "label": "0°"
+  },
+  {
+   "t": 3.0,
+   "dur": 0.166667,
+   "voice": "melody",
+   "midi": 81.0,
+   "freq": 880.0,
+   "gain": 0.7521,
+   "pan": 0.0286,
+   "brightness": 0.5,
+   "frame": 0,
+   "label": "5°E"
+  },
+  {
+   "t": 3.166667,
+   "dur": 0.166667,
+   "voice": "melody",
+   "midi": 79.0,
+   "freq": 783.991,
+   "gain": 0.9109,
+   "pan": 0.0857,
+   "brightness": 0.5,
+   "frame": 0,
+   "label": "15°E"
+  },
+  {
+   "t": 3.333333,
+   "dur": 0.166667,
+   "voice": "melody",
+   "midi": 79.0,
+   "freq": 783.991,
+   "gain": 0.9109,
+   "pan": 0.1429,
+   "brightness": 0.5,
+   "frame": 0,
+   "label": "25°E"
+  },
+  {
+   "t": 3.5,
+   "dur": 0.166667,
+   "voice": "melody",
+   "midi": 79.0,
+   "freq": 783.991,
+   "gain": 0.9285,
+   "pan": 0.2,
+   "brightness": 0.5,
+   "frame": 0,
+   "label": "35°E"
+  },
+  {
+   "t": 3.666667,
+   "dur": 0.166667,
+   "voice": "melody",
+   "midi": 81.0,
+   "freq": 880.0,
+   "gain": 0.8767,
+   "pan": 0.2571,
+   "brightness": 0.5,
+   "frame": 0,
+   "label": "45°E"
+  },
+  {
+   "t": 3.833333,
+   "dur": 0.166667,
+   "voice": "melody",
+   "midi": 81.0,
+   "freq": 880.0,
+   "gain": 0.8381,
+   "pan": 0.3143,
+   "brightness": 0.5,
+   "frame": 0,
+   "label": "55°E"
+  },
+  {
+   "t": 4.0,
+   "dur": 0.166667,
+   "voice": "melody",
+   "midi": 69.0,
+   "freq": 440.0,
+   "gain": 0.6746,
+   "pan": 0.3714,
+   "brightness": 0.5,
+   "frame": 0,
+   "label": "65°E"
+  },
+  {
+   "t": 4.166667,
+   "dur": 0.166667,
+   "voice": "melody",
+   "midi": 69.0,
+   "freq": 440.0,
+   "gain": 0.7726,
+   "pan": 0.4286,
+   "brightness": 0.5,
+   "frame": 0,
+   "label": "75°E"
+  },
+  {
+   "t": 4.333333,
+   "dur": 0.166667,
+   "voice": "melody",
+   "midi": 69.0,
+   "freq": 440.0,
+   "gain": 0.7356,
+   "pan": 0.4857,
+   "brightness": 0.5,
+   "frame": 0,
+   "label": "85°E"
+  },
+  {
+   "t": 4.5,
+   "dur": 0.06,
+   "voice": "tick",
+   "midi": 90.233,
+   "freq": 1500.0,
+   "gain": 0.35,
+   "pan": 0.0,
+   "brightness": 0.0,
+   "frame": 0,
+   "label": "90°E"
+  },
+  {
+   "t": 4.5,
+   "dur": 0.166667,
+   "voice": "melody",
+   "midi": 67.0,
+   "freq": 391.995,
+   "gain": 0.7923,
+   "pan": 0.5429,
+   "brightness": 0.5,
+   "frame": 0,
+   "label": "95°E"
+  },
+  {
+   "t": 4.666667,
+   "dur": 0.166667,
+   "voice": "melody",
+   "midi": 69.0,
+   "freq": 440.0,
+   "gain": 0.7877,
+   "pan": 0.6,
+   "brightness": 0.5,
+   "frame": 0,
+   "label": "105°E"
+  },
+  {
+   "t": 4.833333,
+   "dur": 0.166667,
+   "voice": "melody",
+   "midi": 69.0,
+   "freq": 440.0,
+   "gain": 0.878,
+   "pan": 0.6571,
+   "brightness": 0.5,
+   "frame": 0,
+   "label": "115°E"
+  },
+  {
+   "t": 5.0,
+   "dur": 0.166667,
+   "voice": "melody",
+   "midi": 69.0,
+   "freq": 440.0,
+   "gain": 0.9285,
+   "pan": 0.7143,
+   "brightness": 0.5,
+   "frame": 0,
+   "label": "125°E"
+  },
+  {
+   "t": 5.166667,
+   "dur": 0.166667,
+   "voice": "melody",
+   "midi": 67.0,
+   "freq": 391.995,
+   "gain": 0.878,
+   "pan": 0.7714,
+   "brightness": 0.5,
+   "frame": 0,
+   "label": "135°E"
+  },
+  {
+   "t": 5.333333,
+   "dur": 0.166667,
+   "voice": "melody",
+   "midi": 60.0,
+   "freq": 261.626,
+   "gain": 0.8154,
+   "pan": 0.8286,
+   "brightness": 0.5,
+   "frame": 0,
+   "label": "145°E"
+  },
+  {
+   "t": 5.5,
+   "dur": 0.166667,
+   "voice": "melody",
+   "midi": 55.0,
+   "freq": 195.998,
+   "gain": 0.7656,
+   "pan": 0.8857,
+   "brightness": 0.5,
+   "frame": 0,
+   "label": "155°E"
+  },
+  {
+   "t": 5.666667,
+   "dur": 0.166667,
+   "voice": "melody",
+   "midi": 57.0,
+   "freq": 220.0,
+   "gain": 0.7228,
+   "pan": 0.9429,
+   "brightness": 0.5,
+   "frame": 0,
+   "label": "165°E"
+  },
+  {
+   "t": 5.833333,
+   "dur": 0.166667,
+   "voice": "melody",
+   "midi": 60.0,
+   "freq": 261.626,
+   "gain": 0.6661,
+   "pan": 1.0,
+   "brightness": 0.5,
+   "frame": 0,
+   "label": "175°E"
+  }
+ ],
+ "legend": "Earth Jukebox: daytime land surface temperature (MODIS Terra), whole globe, July 2024.\nWe sweep across the map from west to east in 6 seconds. Each note is one north-to-south strip of the map. Higher pitch means hotter: the lowest note is about 6 °C and the highest about 28 °C.\nQuieter notes mean less of that strip has data, and silence means no data at all, for example ocean in a land-only dataset.\nA click marks the start of the sweep and the longitudes 90° west, 0° (the Greenwich meridian), 90° east.\nThe sound moves from your left ear to your right ear as the sweep goes east.\n"
+}

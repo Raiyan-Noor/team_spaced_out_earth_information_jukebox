@@ -1,0 +1,5 @@
+Earth Jukebox: daytime land surface temperature (MODIS Terra), whole globe, July 2024.
+We sweep across the map from west to east in 6 seconds. Each note is one north-to-south strip of the map. Higher pitch means hotter: the lowest note is about 6 °C and the highest about 28 °C.
+Quieter notes mean less of that strip has data, and silence means no data at all, for example ocean in a land-only dataset.
+A click marks the start of the sweep and the longitudes 90° west, 0° (the Greenwich meridian), 90° east.
+The sound moves from your left ear to your right ear as the sweep goes east.
