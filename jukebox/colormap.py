@@ -62,9 +62,15 @@ class Colormap:
         self._rgbs = rgbs[order]
 
     def value_range(self) -> tuple[float, float]:
-        """Finite min/max of the representative values (used by ``--range colormap``)."""
-        finite = self._values[np.isfinite(self._values)]
-        return float(finite.min()), float(finite.max())
+        """Finite min/max of the colormap (used by ``--range colormap``).
+
+        Uses the *inner* bounds of the end bins: real GIBS colormaps close their end bins with catch-all
+        intervals such as ``[0.02,200)`` and ``[350.02,652)`` whose midpoints are not meaningful, so the range
+        here (200..350 K for MODIS LST) matches the range printed on the official GIBS legend.
+        """
+        lo = min(e.hi if math.isfinite(e.hi) else e.value for e in self.entries)
+        hi = max(e.lo if math.isfinite(e.lo) else e.value for e in self.entries)
+        return float(lo), float(hi)
 
     def lookup(self, rgb: np.ndarray, tolerance: float = DEFAULT_TOLERANCE) -> np.ndarray:
         """Map an ``(..., 3)`` uint8 RGB array to float32 values.

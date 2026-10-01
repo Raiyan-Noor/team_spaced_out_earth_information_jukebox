@@ -48,6 +48,16 @@ def test_parse_interval(text, expected):
     assert parse_interval(text) == expected
 
 
+def test_value_range_ignores_catch_all_bin_midpoints():
+    xml = """<ColorMaps><ColorMap units="K"><Entries>
+      <ColorMapEntry rgb="1,0,0" value="[0.02,200.00)"/>
+      <ColorMapEntry rgb="2,0,0" value="[200.00,200.60)"/>
+      <ColorMapEntry rgb="3,0,0" value="[349.40,350.00)"/>
+      <ColorMapEntry rgb="4,0,0" value="[350.02,652.00)"/>
+    </Entries></ColorMap></ColorMaps>"""
+    assert parse_colormap_xml(xml).value_range() == (200.0, 350.02)
+
+
 def test_value_preferred_over_source_value(small_cmap):
     # The fixture's sourceValue ranges are 10x the scaled values; value must win.
     assert max(e.value for e in small_cmap.entries) == 40.0
