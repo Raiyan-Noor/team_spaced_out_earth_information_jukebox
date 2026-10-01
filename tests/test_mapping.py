@@ -101,3 +101,55 @@ def test_display_value_formats():
     assert display_value(0.04, "K", anomaly=True, decimals=1) == "0.0 °C"
     assert display_value(1.26, "K", anomaly=True, decimals=1) == "+1.3 °C"
     assert display_value(0.5, None, decimals=2) == "0.50"
+
+
+# --- spec test 7: scan mode ----------------------------------------------------------------------------------
+
+from jukebox.mapping import scan_score  # noqa: E402
+
+
+def _scan_frame(grid, time="2024-07-01", bbox=GLOBAL_BBOX):
+    return features_from_grid(np.asarray(grid, dtype=float), bbox, time=time, units="K")
+
+
+def test_all_nan_column_is_silent():
+    grid = np.tile(np.linspace(250, 320, 36), (18, 1))
+    grid[:, 5] = np.nan
+    score = scan_score([_scan_frame(grid)])
+    melody = _melody(score)
+    assert len(melody) == 35
+    assert 5 not in {round((e.t / (6.0 / 36))) for e in melody}
+    midi = [e.midi for e in melody]
+    assert midi == sorted(midi) and midi[0] < midi[-1]  # west->east warming field rises in pitch
+
+
+def test_scan_loudness_pan_and_ticks():
+    grid = np.full((18, 36), 290.0)
+    grid[:9, 0] = np.nan  # half-empty first column (weighted valid fraction 0.5)
+    grid[:, 1] = np.nan
+    score = scan_score([_scan_frame(grid)])
+    melody = _melody(score)
+    first = melody[0]
+    assert first.pan == -1.0 and abs(first.gain - (0.4 + 0.6 * 0.5)) < 1e-3
+    assert melody[-1].pan == 1.0
+    ticks = sorted(e.t for e in score.events if e.voice == "tick")
+    assert ticks == pytest.approx([0.0, 1.5, 3.0, 4.5])  # start, 90W, 0, 90E over a 6 s sweep
+    assert score.meta["tick_longitudes"] == [-90.0, 0.0, 90.0]
+
+
+def test_scan_two_frames_gap_and_double_tick():
+    frames = [_scan_frame(np.full((18, 36), 280.0)), _scan_frame(np.full((18, 36), 300.0), time="2024-08-01")]
+    score = scan_score(frames)
+    second = [e for e in _melody(score) if e.frame == 1]
+    assert second[0].t == pytest.approx(6.5)
+    gap_ticks = [e.t for e in score.events if e.voice == "tick" and 6.0 < e.t < 6.5]
+    assert len(gap_ticks) == 2
+    assert _melody(score)[0].midi < second[0].midi  # normalization spans both frames
+
+
+def test_scan_regional_bbox_ticks_only_inside():
+    bangladesh = scan_score([_scan_frame(np.full((18, 36), 290.0), bbox=(88.0, 20.6, 92.7, 26.6))])
+    assert bangladesh.meta["tick_longitudes"] == [90.0]
+    east_asia = scan_score([_scan_frame(np.full((18, 36), 290.0), bbox=(100.0, 0.0, 140.0, 40.0))])
+    assert east_asia.meta["tick_longitudes"] == []
+    assert len([e for e in east_asia.events if e.voice == "tick"]) == 1

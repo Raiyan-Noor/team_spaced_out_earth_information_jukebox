@@ -274,3 +274,103 @@ def timeline_score(
         drone={"enabled": cfg.drone, "value": drone_value, "frames": len(ref_vals)},
     )
     return Score(meta=m, events=_sorted(events))
+
+
+# --- scan mode -----------------------------------------------------------------------------------------------
+
+SCAN_SWEEP_S = 6.0
+SCAN_GAP_S = 0.5
+SCAN_MIN_VALID = 0.02  # columns with less valid data than this are silent
+SCAN_TICK_LONS = (-90.0, 0.0, 90.0)
+
+
+def lon_label(lon: float) -> str:
+    """'45°E', '120°W', '0°'."""
+    if abs(lon) < 1e-9:
+        return "0°"
+    return f"{abs(lon):g}°{'E' if lon > 0 else 'W'}"
+
+
+def scan_score(
+    frames: list[Frame],
+    cfg: MappingConfig | None = None,
+    meta: dict[str, Any] | None = None,
+    colormap_range: tuple[float, float] | None = None,
+    sweep_s: float = SCAN_SWEEP_S,
+) -> Score:
+    """Scan mode: sweep each frame west -> east, one legato note per longitude column.
+
+    Loudness follows how much of the column has data (silent below 2 %); pan sweeps -1 -> +1; ticks mark the
+    sweep start and the meridians -90/0/+90 that fall inside the bbox. Several frames are scanned in order,
+    separated by a 0.5 s gap holding a double tick.
+    """
+    cfg = cfg or MappingConfig()
+    if not frames:
+        raise ValueError("scan mode needs at least one frame")
+    frames, thr = apply_extreme_fracs(frames)
+    lo, hi = resolve_value_range(np.concatenate([f.col_mean for f in frames]), cfg, colormap_range)
+    monthly = _is_monthly([f.time for f in frames])
+
+    events: list[NoteEvent] = []
+    frame_meta = []
+    offset = 0.0
+    tick_lons: list[float] = []
+    for fi, f in enumerate(frames):
+        minlon, _, maxlon, _ = f.bbox
+        if fi > 0:
+            gap_start = offset - SCAN_GAP_S
+            label = f"next map: {frame_label(f.time, fi, monthly)}"
+            events += [tick_event(gap_start + 0.1, fi, label), tick_event(gap_start + 0.25, fi, label)]
+        events.append(tick_event(offset, fi, f"sweep start {frame_label(f.time, fi, monthly)}"))
+        tick_lons = [lon for lon in SCAN_TICK_LONS if minlon < lon < maxlon]
+        for lon in tick_lons:
+            events.append(tick_event(offset + sweep_s * (lon - minlon) / (maxlon - minlon), fi, lon_label(lon)))
+
+        cols = len(f.col_mean)
+        step = sweep_s / cols
+        columns = []
+        for j in range(cols):
+            value, valid = float(f.col_mean[j]), float(f.col_valid[j])
+            pan = -1.0 + 2.0 * j / (cols - 1) if cols > 1 else 0.0
+            midi = None
+            if math.isfinite(value) and valid >= SCAN_MIN_VALID:
+                midi = value_to_midi(value, lo, hi, cfg)
+                events.append(
+                    NoteEvent(
+                        t=round(offset + j * step, 6),
+                        dur=round(step, 6),
+                        voice="melody",
+                        midi=midi,
+                        freq=round(note_freq(midi), 3),
+                        gain=round(0.4 + 0.6 * valid, 4),
+                        pan=round(pan, 4),
+                        brightness=0.5,
+                        frame=fi,
+                        label=lon_label(round(float(f.lon_c[j]), 2)),
+                    )
+                )
+            columns.append({"lon": float(f.lon_c[j]), "mean": value, "valid": valid, "midi": midi})
+        frame_meta.append(
+            {
+                "time": f.time,
+                "mean": f.mean,
+                "std": f.std,
+                "extreme_frac": f.extreme_frac,
+                "hotspot_lon": f.hotspot_lon,
+                "valid_frac": f.valid_frac,
+                "start_s": offset,
+                "columns": columns,
+            }
+        )
+        offset += sweep_s + SCAN_GAP_S
+
+    m = _base_meta("scan", frames, cfg, meta)
+    m.update(
+        value_range={"lo": lo, "hi": hi},
+        frames=frame_meta,
+        extreme_threshold=thr,
+        tempo_s_per_frame=sweep_s,
+        sweep_s=sweep_s,
+        tick_longitudes=tick_lons,
+    )
+    return Score(meta=m, events=_sorted(events))
