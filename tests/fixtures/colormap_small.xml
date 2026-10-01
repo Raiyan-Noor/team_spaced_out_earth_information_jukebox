@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Small GIBS-style v1.3 colormap for tests. Mirrors the structure of real GIBS files:
+     a separate "No Data" ColorMap, then a data ColorMap with units and interval values. -->
+<ColorMaps>
+  <ColorMap title="No Data">
+    <Entries>
+      <ColorMapEntry rgb="64,64,64" transparent="true" sourceValue="[0,1)" nodata="true" ref="0"/>
+    </Entries>
+  </ColorMap>
+  <ColorMap title="Test Temperature" units="K">
+    <Entries>
+      <ColorMapEntry rgb="0,0,255" transparent="false" sourceValue="[1,100)" value="(-INF,10)" ref="1"/>
+      <ColorMapEntry rgb="0,128,255" transparent="false" sourceValue="[100,200)" value="[10,20)" ref="2"/>
+      <ColorMapEntry rgb="0,255,0" transparent="false" sourceValue="[200,300)" value="[20,30)" ref="3"/>
+      <ColorMapEntry rgb="255,255,0" transparent="false" sourceValue="[300]" value="[30]" ref="4"/>
+      <ColorMapEntry rgb="255,128,0" transparent="false" sourceValue="(300,400]" value="(30,40]" ref="5"/>
+      <ColorMapEntry rgb="255,0,0" transparent="false" sourceValue="(400,32767]" value="(40,+INF]" ref="6"/>
+    </Entries>
+  </ColorMap>
+</ColorMaps>
