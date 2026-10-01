@@ -19,7 +19,7 @@ from jukebox.decode import (
     decode_with_matplotlib_cmap,
 )
 from jukebox.demo import demo_frames
-from jukebox.features import Frame, frame_features
+from jukebox.features import Frame, frame_features, monthly_anomalies
 from jukebox.legend import build_legend, display_value
 from jukebox.mapping import SCALES, MappingConfig, lon_label, scan_score, timeline_score
 from jukebox.score import Score, write_score
@@ -77,6 +77,12 @@ def _add_common(p: argparse.ArgumentParser, default_out: str) -> None:
     g.add_argument("--grid", type=_grid, default=(18, 36), help="coarse grid ROWSxCOLS (default 18x36)")
     g.add_argument("--sample-rate", type=int, default=SAMPLE_RATE, help=f"WAV sample rate (default {SAMPLE_RATE})")
     g.add_argument("--mono", action="store_true", help="write a mono WAV (smaller; loses the pan cue)")
+    g.add_argument(
+        "--anomaly",
+        action="store_true",
+        help="subtract each calendar month's average over the sequence, so you hear departures from normal",
+    )
+    g.add_argument("--plot", action="store_true", help="also write PREFIX.png to check the mapping (needs matplotlib)")
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -152,6 +158,16 @@ def sonify(
     frames: list[Frame] = [frame_features(vg, t, grid=args.grid) for vg, t in zip(grids, times)]
     if all(not math.isfinite(f.mean) for f in frames):
         raise CliError("none of the frames contain any valid data (everything decoded as no-data)")
+    if args.anomaly:
+        if any(t is None for t in times):
+            raise CliError("--anomaly needs dated frames (demo or gibs), not plain images")
+        months = [t[5:7] for t in times if t]
+        if min(months.count(m) for m in set(months)) < 2:
+            raise CliError("--anomaly needs every calendar month at least twice (e.g. 24+ monthly frames)")
+        if args.range_mode == "colormap":
+            raise CliError("--anomaly cannot be combined with --range colormap")
+        frames = monthly_anomalies(frames)
+        meta = {**meta, "anomaly": True}
     info = grids[0].source_info
     meta = {"decode": info.get("decode"), "approximate": bool(info.get("approximate")), **meta}
     build = scan_score if args.mode == "scan" else timeline_score
@@ -168,13 +184,23 @@ def write_outputs(score: Score, args: argparse.Namespace) -> list[Path]:
     write_wav(wav, render(score, sr=args.sample_rate), sr=args.sample_rate, mono=args.mono)
     write_score(score, js)
     txt.write_text(score.legend, encoding="utf-8")
-    return [wav, js, txt]
+    paths = [wav, js, txt]
+    if args.plot:
+        from jukebox.plot import plot_score
+
+        try:
+            paths.append(plot_score(score, prefix.with_name(prefix.name + ".png")))
+        except ImportError as exc:
+            print(f"warning: {exc}; skipped the plot", file=sys.stderr)
+    return paths
 
 
 def format_table(score: Score) -> str:
     """Compact stdout table: frame | time | mean (units) | midi | extreme_frac | pan."""
     units = score.meta.get("units") or ""
-    kelvin = units == "K"
+    kelvin = units == "K" and not score.meta.get("anomaly")
+    if score.meta.get("anomaly"):
+        units += " anom"
     head = f"{'frame':>5}  {'time':<10}  {'mean ' + units:>10}"
     head += f"  {'mean degC':>9}" if kelvin else ""
     head += f"  {'midi':>6}  {'extreme':>7}  {'pan':>6}"
@@ -214,9 +240,10 @@ def report(score: Score, paths: list[Path]) -> None:
     print(format_scan_table(score) if score.meta.get("mode") == "scan" else format_table(score))
     vr = score.meta["value_range"]
     units = score.meta.get("units")
+    anomaly = bool(score.meta.get("anomaly"))
     print(
-        f"\nvalue range for pitch: {vr['lo']:.2f} .. {vr['hi']:.2f} {units or ''}"
-        f" ({display_value(vr['lo'], units, decimals=1)} .. {display_value(vr['hi'], units, decimals=1)})"
+        f"\nvalue range for pitch: {vr['lo']:.2f} .. {vr['hi']:.2f} {units or ''}{' anomaly' if anomaly else ''}"
+        f" ({display_value(vr['lo'], units, anomaly, 1)} .. {display_value(vr['hi'], units, anomaly, 1)})"
     )
     print("\nLegend:\n" + score.legend)
     for p in paths:

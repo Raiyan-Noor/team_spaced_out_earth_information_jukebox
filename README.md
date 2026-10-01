@@ -29,7 +29,7 @@ No installation needed. These files are in [`samples/`](samples/):
 | File | What you hear |
 |---|---|
 | [`lst_global_2022_2024.wav`](samples/lst_global_2022_2024.wav) | 36 months of real NASA land surface temperature (13 s). Three rising-and-falling arcs, one per year. ([legend](samples/lst_global_2022_2024.legend.txt)) |
-| [`lst_scan_2024_07.wav`](samples/lst_scan_2024_07.wav) | One map, July 2024, swept west to east (6.5 s). Silences are oceans. ([legend](samples/lst_scan_2024_07.legend.txt)) |
+| [`lst_scan_2024_07.wav`](samples/lst_scan_2024_07.wav) | One map, July 2024, swept west to east (6.5 s). Notes get quieter over strips that are mostly ocean. No strip is fully silent, because Antarctica puts some land in every strip. ([legend](samples/lst_scan_2024_07.legend.txt)) |
 | [`demo_timeline.wav`](samples/demo_timeline.wav) | The synthetic practice planet, 24 months (9 s). ([legend](samples/demo_timeline.legend.txt)) |
 
 Each WAV has a matching `.legend.txt` (the spoken-style explanation) and `.score.json`. The two real-data samples

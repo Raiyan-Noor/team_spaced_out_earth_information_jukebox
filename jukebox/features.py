@@ -136,3 +136,24 @@ def apply_extreme_fracs(frames: list[Frame], q: float = 90.0) -> tuple[list[Fram
         frac = float((w * (np.where(valid, f.grid, -np.inf) > thr)).sum() / wsum) if wsum > 0 else float("nan")
         out.append(replace(f, extreme_frac=frac))
     return out, thr
+
+
+def monthly_anomalies(frames: list[Frame]) -> list[Frame]:
+    """Sequence pass for anomaly mode: subtract each calendar month's climatology, cell by cell.
+
+    The climatology of a calendar month is the NaN-aware mean of that month's coarse grids across the whole
+    sequence, so the result shows departures from "normal for this month" instead of the seasonal cycle.
+    Requires dates (``YYYY-MM...``) on every frame; features are recomputed on the anomaly grids.
+    """
+    months = []
+    for f in frames:
+        if not f.time or len(f.time) < 7:
+            raise ValueError("anomaly mode needs a date on every frame")
+        months.append(int(f.time[5:7]))
+    clim: dict[int, np.ndarray] = {}
+    for m in set(months):
+        stack = np.stack([f.grid for f, mm in zip(frames, months) if mm == m])
+        sums = np.nansum(stack, axis=0)
+        counts = np.isfinite(stack).sum(axis=0)
+        clim[m] = np.where(counts > 0, sums / np.maximum(counts, 1), np.nan)
+    return [features_from_grid(f.grid - clim[m], f.bbox, time=f.time, units=f.units) for f, m in zip(frames, months)]

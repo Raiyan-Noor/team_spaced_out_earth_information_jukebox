@@ -140,3 +140,18 @@ def test_demo_scan_mode(tmp_path):
     assert d["meta"]["mode"] == "scan" and d["meta"]["times"] == ["2022-07-01"]
     rests = [c for c in d["meta"]["frames"][0]["columns"] if c["midi"] is None]
     assert rests  # ocean-only longitudes are silent
+
+
+def test_demo_anomaly_and_plot(tmp_path):
+    pytest.importorskip("matplotlib")
+    assert main(["demo", "--anomaly", "--plot", "--out", str(tmp_path / "a")]) == 0
+    d = json.loads((tmp_path / "a.score.json").read_text(encoding="utf-8"))
+    assert d["meta"]["anomaly"] is True and validate_score_dict(d) == []
+    assert abs(sum(f["mean"] for f in d["meta"]["frames"])) < 1.0  # anomalies average ~0 over the sequence
+    assert "warmer than normal" in d["legend"] and "273" not in d["legend"]
+    assert (tmp_path / "a.png").stat().st_size > 10_000
+
+
+def test_anomaly_rejects_short_sequences(tmp_path, capsys):
+    assert main(["demo", "--frames", "12", "--anomaly", "--out", str(tmp_path / "a")]) == 2
+    assert "twice" in capsys.readouterr().err

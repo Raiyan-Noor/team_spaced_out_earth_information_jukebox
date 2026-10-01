@@ -122,16 +122,16 @@ def build_legend(score: Score) -> str:
         )
 
     if anomaly:
-        up, down = ("warmer than normal", "cooler than normal") if temp else ("above normal", "below normal")
+        up = "warmer than normal" if temp else "above normal"
         quantity = "difference from the usual value for that month"
     elif temp:
-        up, down = "hotter", "colder"
+        up = "hotter"
         quantity = "temperature"
     elif approximate:
-        up, down = "brighter", "darker"
+        up = "brighter"
         quantity = "brightness"
     else:
-        up, down = "a higher value", "a lower value"
+        up = "a higher value"
         quantity = "value"
 
     span = (hi - lo) if lo is not None and hi is not None else 0.0
@@ -152,7 +152,7 @@ def build_legend(score: Score) -> str:
         if anomaly:
             lines.append(
                 "The usual seasonal cycle has been removed, so each note shows how unusual that month was "
-                f"compared with the same month in other years of this sequence; {down} gives a lower note."
+                "compared with the same month in the other years of this sequence."
             )
         lines.append("A soft click marks the start of each year.")
         drone = meta.get("drone") or {}
@@ -164,10 +164,11 @@ def build_legend(score: Score) -> str:
             )
         hot = "unusually warm" if anomaly and temp else ("unusually hot" if temp else "unusually high")
         lines.append(f"A brighter, buzzier note means more of {_area_noun(meta)} is {hot} that {step}.")
-        lines.append(
-            f"The sound leans left or right toward where the {'hottest' if temp else 'highest'} area is, "
-            "west to east."
-        )
+        if anomaly:
+            target = "most unusually warm" if temp else "most unusually high"
+        else:
+            target = "hottest" if temp else "highest"
+        lines.append(f"The sound leans left or right toward where the {target} area is, west to east.")
     else:
         sweep = meta.get("sweep_s", 6.0)
         n_frames = len(meta.get("times") or [1])

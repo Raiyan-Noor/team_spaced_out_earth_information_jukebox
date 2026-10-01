@@ -50,3 +50,15 @@ def test_extreme_frac_uses_sequence_threshold():
     assert abs(thr - 9.1) < 1e-9
     assert [f.extreme_frac for f in frames] == [0.0] * 9 + [1.0]
     assert originals[0].extreme_frac is None  # sequence pass returns copies
+
+
+def test_monthly_anomalies_remove_the_seasonal_cycle():
+    from jukebox.features import features_from_grid, monthly_anomalies
+
+    frames = []
+    for i in range(24):
+        month = i % 12 + 1
+        value = 280.0 + 10.0 * np.cos(2 * np.pi * (month - 7) / 12) + (1.0 if i >= 12 else 0.0)  # year 2 is +1 K
+        frames.append(features_from_grid(np.full((18, 36), value), GLOBAL_BBOX, time=f"{2022 + i // 12}-{month:02d}-01"))
+    anoms = monthly_anomalies(frames)
+    np.testing.assert_allclose([f.mean for f in anoms], [-0.5] * 12 + [0.5] * 12, atol=1e-9)
